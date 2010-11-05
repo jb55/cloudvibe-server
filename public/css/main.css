@@ -1,0 +1,27 @@
+
+body {
+  margin: 0;
+  font-family: 'Helvetica Neue', 'Helvetica';
+  font-weight: 300;
+}
+
+h2 {
+  border-bottom: 1px solid #ddd;
+}
+
+fieldset {
+  border: 1px solid #ddd;
+}
+
+#header {
+  padding: 20px 0px 0px 20px;
+  height: 70px;
+  background: #fff url('/img/header_back.png') repeat-x top left;
+}
+
+#container {
+  padding: 10px;
+  margin: auto;
+  width: 900px;
+}
+

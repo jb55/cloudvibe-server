@@ -7,7 +7,7 @@ var testFile = "data/song.mp3"
 storage.save(testFile, function(s3) {
 
   s3.on("error", function (err) {
-    console.log("Error:", err);
+    console.log(err);
   });
 
   s3.on("progress", function (percentSent) {

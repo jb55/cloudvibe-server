@@ -1,0 +1,10 @@
+h2 Upload a song
+
+form(method="post", action="upload", enctype="multipart/form-data")
+  fieldset
+    legend Choose local file
+    p
+      label(for="songFile") File:
+        input(type="file", name="songFile")
+    p
+      input(type="submit", value="Upload")
