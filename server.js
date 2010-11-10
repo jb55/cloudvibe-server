@@ -30,12 +30,10 @@ app.configure('developement', function () {
 // Configuration }}}
 
 // View helpers
-/*
-app.helpers({
-    name: function (a) { return "hi"; }
-  , author: "Bill Casarin"
-});
-*/
+//  app.helpers({
+//      name: function (a) { return "hi"; }
+//    , author: "Bill Casarin"
+//  });
 
 function viewData (d) {
   return { locals: d };
@@ -43,18 +41,23 @@ function viewData (d) {
 
 // Root controller
 app.get('/', function (req, res) {
+  console.log(req);
   res.render("default");
 });
 
-// User controller
-app.get('/user/:id', function (req, res) {
-  var id = req.params.id;
-  res.render('user', viewData({name: id}));
+// User controller {{{
+app.get('/user/:user', function (req, res) {
+  var user = req.params.user;
+  res.render('user', viewData({user: user}));
 });
 
 app.post('/user/:user/upload', function (req, res) {
   var form = new formidable.IncomingForm();
   var user = req.params.user;
+
+  form.addListener('progress', function (received, expected) {
+    console.log('Upload to server progress:', (received / expected)*100, '%');
+  });
 
   // Read in file data
   form.parse(req, function(err, fields, files) {
@@ -69,11 +72,14 @@ app.post('/user/:user/upload', function (req, res) {
       }
       // clean up temporary files
       fs.unlink(path);
+    }, function (percent) {
+      console.log('Upload to S3 progress:', percent, '%');
     });
 
     res.render("upload_complete", viewData({ fileName: fileName }));
   });
 });
+// User controller }}}
 
 // Start listening for requests
 app.listen(8080);
