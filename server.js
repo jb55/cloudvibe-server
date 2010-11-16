@@ -5,6 +5,7 @@ var express = require('express')
   , formidable = require('formidable')
   , storage = require('storage')
   , fs = require('fs')
+  , util = require('util')
   ;
 
 // Create the express server
@@ -29,6 +30,7 @@ app.configure('developement', function () {
 });
 // Configuration }}}
 
+// Misc {{{
 // View helpers
 //  app.helpers({
 //      name: function (a) { return "hi"; }
@@ -38,6 +40,7 @@ app.configure('developement', function () {
 function viewData (d) {
   return { locals: d };
 }
+// Misc }}}
 
 // Root controller
 app.get('/', function (req, res) {
@@ -51,12 +54,32 @@ app.get('/user/:user', function (req, res) {
   res.render('user', viewData({user: user}));
 });
 
+app.put('/user/:user', function (req, res) {
+  var user = req.params.user;
+  var file = '/tmp/' + user + '-test';
+
+  var ws = fs.createWriteStream(file);
+
+  req.addListener('data', function (d) {
+    console.log ('wrote data: ', d);
+    ws.write(d);
+  });
+
+  req.addListener('end', function () {
+    console.log("we're done here.");
+    ws.end();
+    res.writeHead(201);
+    res.end();
+  });
+
+});
+
 app.post('/user/:user/upload', function (req, res) {
   var form = new formidable.IncomingForm();
   var user = req.params.user;
 
   form.addListener('progress', function (received, expected) {
-    console.log('Upload to server progress:', (received / expected)*100, '%');
+    console.log(user + ' Uploading to server progress:', (received / expected)*100, '%');
   });
 
   // Read in file data
@@ -73,7 +96,7 @@ app.post('/user/:user/upload', function (req, res) {
       // clean up temporary files
       fs.unlink(path);
     }, function (percent) {
-      console.log('Upload to S3 progress:', percent, '%');
+      console.log(user + ' Uploading to S3 progress:', percent, '%');
     });
 
     res.render("upload_complete", viewData({ fileName: fileName }));
