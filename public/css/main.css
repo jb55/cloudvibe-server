@@ -5,12 +5,45 @@ body {
   font-weight: 300;
 }
 
+.light {
+  font-family: 'Helvetica Neue', 'Helvetica';
+  font-weight: 300;
+}
+
 h2 {
+  margin: 0 0 20px 0;
   border-bottom: 1px solid #ddd;
+}
+
+ul {
+  padding-left: 0.5em;
+  list-style-type: none;
+}
+
+ul li {
+  margin: 0;
+  padding-bottom: 5px;
 }
 
 fieldset {
   border: 1px solid #ddd;
+}
+
+#main {
+  display: hidden;
+}
+
+.column {
+  height: 800px;
+  width: 150px;
+  float: left;
+  background: #fff url('/img/column_back.png') repeat-y top right;
+  padding: 10px;
+}
+
+.column h4 {
+  margin: 0;
+  border-bottom: 1px solid #ddd;
 }
 
 #header {
@@ -20,8 +53,8 @@ fieldset {
 }
 
 #container {
-  padding: 10px;
-  margin: auto;
-  width: 900px;
+  float: left;
+  width: 600px;
+  padding: 20px;
 }
 

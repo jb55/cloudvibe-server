@@ -6,4 +6,17 @@ html(lang="en")
   body
     #header
       img(src="/img/header_logo_beta.png")
-    #container!= body
+    #main
+      #artists.column
+        h4.light Artist
+        ul
+          - var artists = ["Datsik" , "Excision" , "Culprate" , "Flux Pavilion" , "Nero" , "Robokop" , "Eskmo" , "Robokop"]
+          - each artist in artists
+            li= artist
+      #song.column
+        h4.light Song
+        ul
+          - var songs = ["song 1", "song 2", "song 3"]
+          - each song in songs
+            li= song
+      #container!= body

@@ -61,12 +61,10 @@ app.put('/user/:user', function (req, res) {
   var ws = fs.createWriteStream(file);
 
   req.addListener('data', function (d) {
-    console.log ('wrote data: ', d);
     ws.write(d);
   });
 
   req.addListener('end', function () {
-    console.log("we're done here.");
     ws.end();
     res.writeHead(201);
     res.end();
