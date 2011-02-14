@@ -1,6 +1,7 @@
 h2 Upload a song
 
-form(method="post", action="/user/" + user + "/upload", enctype="multipart/form-data")
+
+form(method="post", action="/user/" + user.nick + "/upload", enctype="multipart/form-data")
   fieldset
     legend Choose local file
     p

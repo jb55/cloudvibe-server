@@ -21,18 +21,17 @@ storage.save(testFile, function(s3) {
 */
 
 var User = require("./lib/user");
-var db = require("./lib/db");
-var cs = db.buildConnectionString(
+var _db = require("./lib/db");
+var cs = _db.buildConnectionString(
   "localhost", 5432, "postgres", "postgres", "cloudvibe");
+var db = _db.createClient(cs).setLog(console.log);
 
-var testUser = "bill";
+var testUser = "testuser";
 
-db.log = console.log;
-
-User.exists(cs, testUser, function(err, userExists){
+User.exists(db, testUser, function(err, userExists){
   if (err) throw err;
   if (!userExists) {
-    User.register(cs, testUser, "derp", function(err, user){
+    User.register(db, testUser, "derp", function(err, user){
       if (err) throw err;
       console.log("Created user", user);
     });
@@ -40,4 +39,3 @@ User.exists(cs, testUser, function(err, userExists){
     console.log("User", testUser, "exists");
   }
 });
-

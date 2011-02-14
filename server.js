@@ -1,7 +1,7 @@
 
 var express = require('express')
   , _ = require('underscore')._
-  , db = require('./lib/db')
+  , Database = require('./lib/db')
   , User = require('./lib/user')
   , storage = require('./lib/storage')
   , formidable = require('formidable')
@@ -15,8 +15,9 @@ GLOBALS.songData = [];
 
 // Create the express server
 var app = express.createServer();
-db.cs = db.buildConnectionString(
+var cs = Database.buildConnectionString(
   "localhost", 5432, "postgres", "postgres", "cloudvibe");
+var db = Database.createClient(cs).setLog(console.log);
 
 // Configuration {{{
 // Shared configuration
@@ -73,18 +74,29 @@ app.get('/', function (req, res) {
 // [GET] Root user controller
 //   /user/bill
 //===----------------------------------------------------------------------===//
-app.get('/user/:user', function (req, res) {
-  var user = req.params.user;
-  User.exists(db.cs, user, function(err, userExists){
-    if (!userExists) {
-      res.writeHead(200);
+app.get('/user/:nick', function (req, res) {
+  var nick = req.params.nick;
+
+  User.get(db, nick, function(err, user){
+    if (err || !user) {
+      res.writeHead(400);
       res.write("User doesn't exist");
       res.end();
       return;
     }
-
     res.render('user', viewData({user: user}));
   });
+
+
+//User.exists(db, nick, function(err, userExists){
+//  if (!userExists) {
+//    res.writeHead(200);
+//    res.write("User doesn't exist");
+//    res.end();
+//    return;
+//  }
+//});
+
 });
 
 
@@ -94,7 +106,7 @@ app.get('/user/:user', function (req, res) {
 //===----------------------------------------------------------------------===//
 app.put('/user/:user', function (req, res) {
   var urlUser = req.params.user;
-  User.exists(db.cs, urlUser, function(err, userExists){
+  User.exists(db, urlUser, function(err, userExists){
     if (!userExists) {
       res.writeHead(400);
       res.write("User doesn't exist");
