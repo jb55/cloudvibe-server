@@ -111,6 +111,7 @@ app.put('/user/:user', function (req, res) {
       res.writeHead(400);
       res.write("User doesn't exist");
       res.end();
+      return;
     }
 
     var file = '/tmp/' + user + '-test';
@@ -144,9 +145,12 @@ app.post('/user/:user/upload', function (req, res) {
 
   // Read in file data
   form.parse(req, function(err, fields, files) {
+    console.log(err);
     var fileName = files.songFile.filename;
     var path = files.songFile.path;
     var uploadPath = user + '/' + fileName;
+
+    console.log(fileName, path, uploadPath);
 
     // Save to S3
     storage.save(path, uploadPath, function (err) {
@@ -169,11 +173,24 @@ app.post('/user/:user/upload', function (req, res) {
 //   /user/bill/sync
 //===----------------------------------------------------------------------===//
 app.post('/user/:user/sync', function (req, res) {
-  req.addListener('data', function (d) {
-    GLOBALS.songData = JSON.parse(d.toString());
+
+  var nick = req.params.user;
+
+  req.addListener('data', function (d){
+    User.get(db, nick, function(err, user) {
+      var data = JSON.parse(d.toString());
+      console.log(data);
+      var md5s = _.map(data, function(song){ return song.md5; });
+      db.lookup(user.id, 'user_id', 'song', 'md5', function(stored_md5s){
+        var synced = _.intersect(md5s, stored_md5s);
+        var toUpload = _.without(md5s, synced);
+        var toDownload = _.without(stored_md5s, synced);
+        var result = {upload: toUpload, download: toDownload};
+        res.send(result);
+      });
+    });
   });
 
-  res.send("ok");
 });
 
 // User controller }}}
