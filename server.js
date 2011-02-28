@@ -5,6 +5,7 @@ var express = require('express')
   , User = require('./lib/user')
   , storage = require('./lib/storage')
   , formidable = require('formidable')
+  , path = require('path')
   , fs = require('fs')
   , util = require('util')
   ;
@@ -140,25 +141,34 @@ app.post('/user/:user/upload', function (req, res) {
   var user = req.params.user;
 
   form.addListener('progress', function (received, expected) {
-    console.log(user + ' Uploading to server progress:', (received / expected)*100, '%');
+    console.log(user + ' Uploading to server progress:', (received /
+      expected)*100, '%');
   });
 
   // Read in file data
   form.parse(req, function(err, fields, files) {
-    console.log(err);
-    var fileName = files.songFile.filename;
-    var path = files.songFile.path;
+
+    // TODO: throw error and use an error handler
+    if (err) {
+      res.writeHead(500);
+      res.write("Error parsing song data");
+      res.end();
+      return;
+    }
+
+    var fileName = path.basename(files.songFile.filename);
+    var filePath = files.songFile.path;
     var uploadPath = user + '/' + fileName;
 
-    console.log(fileName, path, uploadPath);
+    console.log(fileName, filePath, uploadPath);
 
     // Save to S3
-    storage.save(path, uploadPath, function (err) {
+    storage.save(filePath, uploadPath, function (err) {
       if (err) {
         console.log(err);
       }
       // clean up temporary files
-      fs.unlink(path);
+      fs.unlink(filePath);
     }, function (percent) {
       console.log(user + ' Uploading to S3 progress:', percent, '%');
     });
