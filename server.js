@@ -2,6 +2,7 @@
 var express = require('express')
   , _ = require('underscore')._
   , Database = require('./lib/db')
+  , Song = require('./lib/song')
   , User = require('./lib/user')
   , storage = require('./lib/storage')
   , formidable = require('formidable')
@@ -131,23 +132,16 @@ app.put('/user/:user', function (req, res) {
   });
 });
 
-
 //===----------------------------------------------------------------------===//
 // [POST] Song upload controller
 //   /user/bill/upload
 //===----------------------------------------------------------------------===//
 app.post('/user/:user/upload', function (req, res) {
   var form = new formidable.IncomingForm();
-  var user = req.params.user;
-
-  form.addListener('progress', function (received, expected) {
-    console.log(user + ' Uploading to server progress:', (received /
-      expected)*100, '%');
-  });
+  var nick = req.params.user;
 
   // Read in file data
   form.parse(req, function(err, fields, files) {
-
     // TODO: throw error and use an error handler
     if (err) {
       res.writeHead(500);
@@ -156,9 +150,18 @@ app.post('/user/:user/upload', function (req, res) {
       return;
     }
 
+    // Improve data and register song in database
+    Song.improveData(fields, function(err, improvedData){
+      User.get(db, nick, function(err, user){
+        Song.register(db, user.id, improvedData, function(err){
+          if (err) console.log(err);
+        });
+      });
+    });
+
     var fileName = path.basename(files.songFile.filename);
     var filePath = files.songFile.path;
-    var uploadPath = user + '/' + fileName;
+    var uploadPath = nick + '/' + fileName;
 
     console.log(fileName, filePath, uploadPath);
 
@@ -170,7 +173,7 @@ app.post('/user/:user/upload', function (req, res) {
       // clean up temporary files
       fs.unlink(filePath);
     }, function (percent) {
-      console.log(user + ' Uploading to S3 progress:', percent, '%');
+      console.log(nick + ' Uploading to S3 progress:', percent, '%');
     });
 
     res.render("upload_complete", viewData({ fileName: fileName }));
@@ -190,12 +193,21 @@ app.post('/user/:user/sync', function (req, res) {
     User.get(db, nick, function(err, user) {
       var data = JSON.parse(d.toString());
       console.log(data);
-      var md5s = _.map(data, function(song){ return song.md5; });
-      db.lookup(user.id, 'user_id', 'song', 'md5', function(stored_md5s){
+      var md5s = _.pluck(data, "md5");
+
+      db.lookup(user.id, 'user_id', 'song', 'md5', function(err, stored_md5s){
+        stored_md5s = _.pluck(stored_md5s, "md5");
         var synced = _.intersect(md5s, stored_md5s);
-        var toUpload = _.without(md5s, synced);
-        var toDownload = _.without(stored_md5s, synced);
+
+        function stripSynced(data) {
+          return _.filter(data, function(v){ return !_.include(synced, v); });
+        }
+
+        var toUpload = stripSynced(md5s);
+        var toDownload = stripSynced(stored_md5s);
         var result = {upload: toUpload, download: toDownload};
+
+        console.log(result);
         res.send(result);
       });
     });
