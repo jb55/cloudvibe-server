@@ -159,7 +159,7 @@ app.post('/user/:user/upload', function (req, res) {
       });
     });
 
-    var fileName = path.basename(files.songFile.filename);
+    var fileName = fields.md5 + ".mp3";
     var filePath = files.songFile.path;
     var uploadPath = nick + '/' + fileName;
 
@@ -169,12 +169,12 @@ app.post('/user/:user/upload', function (req, res) {
     storage.save(filePath, uploadPath, function (err) {
       if (err) {
         console.log(err);
+      } else {
+        console.log("Saved", uploadPath, "to S3");
       }
       // clean up temporary files
       fs.unlink(filePath);
-    }, function (percent) {
-      console.log(nick + ' Uploading to S3 progress:', percent, '%');
-    });
+    })
 
     res.render("upload_complete", viewData({ fileName: fileName }));
   });
