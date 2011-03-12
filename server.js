@@ -48,8 +48,9 @@ app.configure('developement', function () {
 //  });
 
 function viewData (d) {
-  d.artists = selectUniq(GLOBALS.songData, function (s) { return s.artist; });
-  d.titles = selectUniq(GLOBALS.songData, function (s) { return s.title; });
+  var songs = d.songs || GLOBALS.songData;
+  d.artists = selectUniq(songs, function (s) { return s.artist; });
+  d.titles = selectUniq(songs, function (s) { return s.title; });
   return { locals: d };
 }
 
@@ -72,6 +73,16 @@ app.get('/', function (req, res) {
 
 // User controller {{{
 
+
+//===----------------------------------------------------------------------===//
+// noUserResult
+//===----------------------------------------------------------------------===//
+function noUserResult(res) {
+  res.writeHead(400);
+  res.write("User doesn't exist");
+  res.end();
+}
+
 //===----------------------------------------------------------------------===//
 // [GET] Root user controller
 //   /user/bill
@@ -80,24 +91,12 @@ app.get('/user/:nick', function (req, res) {
   var nick = req.params.nick;
 
   User.get(db, nick, function(err, user){
-    if (err || !user) {
-      res.writeHead(400);
-      res.write("User doesn't exist");
-      res.end();
-      return;
-    }
-    res.render('user', viewData({user: user}));
+    if (err || !user) return noUserResult(res);
+
+    User.getSongs(db, user.id, function(err, songs){
+      res.render('user', viewData({user: user, songs: songs}));
+    });
   });
-
-
-//User.exists(db, nick, function(err, userExists){
-//  if (!userExists) {
-//    res.writeHead(200);
-//    res.write("User doesn't exist");
-//    res.end();
-//    return;
-//  }
-//});
 
 });
 
@@ -109,12 +108,7 @@ app.get('/user/:nick', function (req, res) {
 app.put('/user/:user', function (req, res) {
   var urlUser = req.params.user;
   User.exists(db, urlUser, function(err, userExists){
-    if (!userExists) {
-      res.writeHead(400);
-      res.write("User doesn't exist");
-      res.end();
-      return;
-    }
+    if (!userExists) return noUserResult(res);
 
     var file = '/tmp/' + user + '-test';
     var ws = fs.createWriteStream(file);
