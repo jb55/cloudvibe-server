@@ -15,6 +15,14 @@ h2 {
   border-bottom: 1px solid #ddd;
 }
 
+th {
+  text-align: left;
+}
+
+td, th {
+  padding: 3px;
+}
+
 ul {
   padding-left: 0.5em;
   list-style-type: none;

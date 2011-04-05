@@ -1,11 +1,12 @@
-h2 Upload a song
+h2 Music Library
 
-
-form(method="post", action="/user/" + user.nick + "/upload", enctype="multipart/form-data")
-  fieldset
-    legend Choose local file
-    p
-      label(for="songFile") File:
-        input(type="file", name="songFile")
-    p
-      input(type="submit", value="Upload")
+table
+  tr
+    th Artist
+    th Title
+    th File
+  - each song in songs
+    tr
+      td= song.artist || "?"
+      td= song.title || "?"
+      td= song.filename
