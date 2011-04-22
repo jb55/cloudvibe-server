@@ -26,7 +26,7 @@ var db = Database.createClient(cs).setLog(console.log);
 app.configure(function () {
   app.set('views', __dirname + '/views');
   app.set('view engine', 'jade');
-  app.use(express.staticProvider(__dirname + '/public')); 
+  app.use(express.static(__dirname + '/public'));
 });
 
 // Production configuration
@@ -211,4 +211,4 @@ app.post('/user/:user/sync', function (req, res) {
 // User controller }}}
 
 // Start listening for requests
-app.listen(8081);
+app.listen(8080);
