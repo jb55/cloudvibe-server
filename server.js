@@ -180,7 +180,6 @@ app.post('/user/:user/upload', function (req, res) {
 //   /user/bill/sync
 //===----------------------------------------------------------------------===//
 app.post('/user/:user/sync', function (req, res) {
-
   var nick = req.params.user;
 
   req.addListener('data', function (d){
