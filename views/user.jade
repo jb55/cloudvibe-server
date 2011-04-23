@@ -1,6 +1,6 @@
 h2 Music Library
 
-table
+table.flexme
   tr
     th Artist
     th Title
@@ -10,3 +10,9 @@ table
       td= song.artist || "?"
       td= song.title || "?"
       td= song.filename
+
+script
+  $(function() {
+    $(".flexme").flexigrid();
+  });
+
