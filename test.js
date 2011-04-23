@@ -23,8 +23,8 @@ storage.save(testFile, function(s3) {
 
 var Song = require("./lib/song");
 
-var testData = {title: "My Title", artist: "Some artist"};
+var testData = {title: "Fallen", artist: "30 Seconds To Mars"};
 
 Song.improveData(testData, function(err, improvedData){
-  console.log(improvedData.title);
+  console.log(improvedData);
 });
