@@ -1,0 +1,51 @@
+!!! 5
+html(lang="en")
+  head
+    link(rel="stylesheet", href="/css/main.css")
+    link(rel="stylesheet", href="/css/landing.css")
+    title Cloudvibe | Sign up
+    script(src="https://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js")
+    script
+      $(function(){
+        $(":text, :password").focus(function(){
+          var self = $(this);
+          var old = self.val();
+          var oldColor = self.css("color");
+          self.css("color", "#222");
+          self.blur(function(){
+            var newVal = self.val();
+            var changeBack = newVal == "" || newVal == old;
+            if (changeBack) {
+              self.css("color", oldColor);
+              self.val(old);
+            }
+          });
+          self.val("");
+        });
+      });
+  body
+    #home
+      img(src="/img/cloudvibe.png")
+      form(method="post", id="signup-form")
+        p
+          p Choose a username
+          input(type="text", name="user[name]", value=user.name)
+          - if (user.errors.name)
+            p.error= user.errors.name
+        p
+          p Type your email address
+          input(type="text", name="user[email]", value=user.email)
+          - if (user.errors.email)
+            p.error= user.errors.email
+        p
+          p Type your password
+          input(type="password", name="user[password]", value=user.password)
+          - if (user.errors.password)
+            p.error= user.errors.password
+        p
+          p Type your password again
+          input(type="password", name="user[confirmpassword]", value=user.confirmpassword)
+          - if (user.errors.confirmpassword)
+            p.error= user.errors.confirmpassword
+        p
+          input(type="submit", name="submit", value="Submit")

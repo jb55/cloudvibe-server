@@ -1,15 +1,20 @@
 
 var express = require('express')
   , _ = require('underscore')._
+  , connect = require('connect')
+  , logger = require('./lib/logger')
   , Database = require('./lib/db')
   , Song = require('./lib/song')
   , User = require('./lib/user')
   , storage = require('./lib/storage')
   , formidable = require('formidable')
   , path = require('path')
+  , sutil = require('./lib/sutil')
   , fs = require('fs')
   , util = require('util')
+  , signup = require('./signup')
   ;
+
 
 // Global (for testing only)
 var GLOBALS = {};
@@ -19,14 +24,15 @@ GLOBALS.songData = [];
 var app = express.createServer();
 var cs = Database.buildConnectionString(
   "localhost", 5432, "postgres", "postgres", "cloudvibe");
-var db = Database.createClient(cs).setLog(console.log);
+var db = Database.createClient(cs);
 
 // Configuration {{{
 // Shared configuration
 app.configure(function () {
+  app.use(express.bodyParser());
   app.set('views', __dirname + '/views');
   app.set('view engine', 'jade');
-  app.use(express.static(__dirname + '/public'));
+  app.use(connect.static(__dirname + '/public'));
 });
 
 // Production configuration
@@ -67,9 +73,14 @@ function selectUniq(l, fn) {
 //===----------------------------------------------------------------------===//
 // Root controller
 //===----------------------------------------------------------------------===//
-app.get('/', function (req, res) {
-  res.render("default", viewData({}));
+app.get('/', function (req, res){
+  res.render("home/landing", { layout: false });
 });
+
+//===----------------------------------------------------------------------===//
+// Setup signup routes
+//===----------------------------------------------------------------------===//
+signup.routes(app, db);
 
 // User controller {{{
 

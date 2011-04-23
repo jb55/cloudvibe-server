@@ -25,7 +25,7 @@ var User = require("./lib/user");
 var _db = require("./lib/db");
 var cs = _db.buildConnectionString(
   "localhost", 5432, "postgres", "postgres", "cloudvibe");
-var db = _db.createClient(cs).setLog(console.log);
+var db = _db.createClient(cs);
 
 var testUser = "testuser";
 
