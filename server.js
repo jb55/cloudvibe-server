@@ -8,7 +8,7 @@ var express = require('express')
   , Song = require('./lib/song')
   , User = require('./lib/user')
   , storage = require('./lib/storage')
-  , formidable = require('formidable')
+  , form = require('connect-form')
   , path = require('path')
   , sutil = require('./lib/sutil')
   , fs = require('fs')
@@ -31,6 +31,7 @@ var db = Database.createClient(cs);
 // Shared configuration
 app.configure(function () {
   app.use(express.bodyParser());
+  app.use(form({ keepExtensions: true }));
   app.set('views', __dirname + '/views');
   app.set('view engine', 'jade');
   app.use(connect.static(__dirname + '/public'));
@@ -143,11 +144,10 @@ app.put('/user/:user', function (req, res) {
 //   /user/bill/upload
 //===----------------------------------------------------------------------===//
 app.post('/user/:user/upload', function (req, res) {
-  var form = new formidable.IncomingForm();
   var nick = req.params.user;
 
   // Read in file data
-  form.parse(req, function(err, fields, files) {
+  req.form.complete(function(err, fields, files) {
     // TODO: throw error and use an error handler
     if (err) {
       logger.error("Error parsing form multipart song data: " + err.message)
@@ -163,8 +163,8 @@ app.post('/user/:user/upload', function (req, res) {
     // Improve data and register song in database
     Song.improveData(fields, function(err, improvedData){
       User.get(db, nick, function(err, user){
-        logger.info(nick + " adding " + improvedData.title +
-          " to their collection");
+        logger.info(nick + " adding '" + improvedData.filename +
+          "' to their collection");
         Song.register(db, user.id, improvedData, function(err){
           if (err) logger.error(err.message);
         });
@@ -214,6 +214,9 @@ app.post('/user/:user/sync', function (req, res) {
         var toUpload = stripSynced(md5s);
         var toDownload = stripSynced(stored_md5s);
         var result = {upload: toUpload, download: toDownload};
+
+        logger.info(nick + " syncing. " + toDownload.length + " to download, " +
+          toUpload.length + " to upload");
 
         res.send(result);
       });
