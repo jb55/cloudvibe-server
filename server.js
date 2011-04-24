@@ -149,6 +149,7 @@ app.post('/user/:user/upload', function (req, res) {
   form.parse(req, function(err, fields, files) {
     // TODO: throw error and use an error handler
     if (err) {
+      logger.error("Error parsing song data")
       res.writeHead(500);
       res.write("Error parsing song data");
       res.end();
@@ -168,14 +169,12 @@ app.post('/user/:user/upload', function (req, res) {
     var filePath = files.songFile.path;
     var uploadPath = nick + '/' + fileName;
 
-    console.log(fileName, filePath, uploadPath);
-
     // Save to S3
     storage.save(filePath, uploadPath, function (err) {
       if (err) {
-        console.log(err);
+        logger.error("S3 " + err.message);
       } else {
-        console.log("Saved", uploadPath, "to S3");
+        logger.info("Saved " + uploadPath + " to S3");
       }
       // clean up temporary files
       fs.unlink(filePath);
@@ -193,10 +192,17 @@ app.post('/user/:user/upload', function (req, res) {
 app.post('/user/:user/sync', function (req, res) {
   var nick = req.params.user;
 
-  req.addListener('data', function (d){
+  var d = "";
+  req.addListener('data', function (chunk){
+    d += chunk;
+  });
+
+  req.addListener('end', function(){
     User.get(db, nick, function(err, user) {
-      var data = JSON.parse(d.toString());
-      console.log(data);
+      var strData = d.toString();
+      logger.debug(strData);
+      var data = JSON.parse(strData);
+
       var md5s = _.pluck(data, "md5");
 
       db.lookup(user.id, 'user_id', 'song', 'md5', function(err, stored_md5s){
@@ -211,15 +217,15 @@ app.post('/user/:user/sync', function (req, res) {
         var toDownload = stripSynced(stored_md5s);
         var result = {upload: toUpload, download: toDownload};
 
-        console.log(result);
+        logger.debug(result);
         res.send(result);
       });
     });
-  });
+  })
 
 });
 
 // User controller }}}
 
 // Start listening for requests
-app.listen(8081);
+app.listen(8083);
