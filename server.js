@@ -1,6 +1,7 @@
 
 var express = require('express')
   , _ = require('underscore')._
+  , uuid = require('node-uuid')
   , connect = require('connect')
   , logger = require('./lib/logger')
   , Database = require('./lib/db')
@@ -149,36 +150,36 @@ app.post('/user/:user/upload', function (req, res) {
   form.parse(req, function(err, fields, files) {
     // TODO: throw error and use an error handler
     if (err) {
-      logger.error("Error parsing song data")
+      logger.error("Error parsing form multipart song data: " + err.message)
       res.writeHead(500);
       res.write("Error parsing song data");
       res.end();
       return;
     }
 
+    var uid = uuid();
+    fields.uid = uid;
+
     // Improve data and register song in database
     Song.improveData(fields, function(err, improvedData){
       User.get(db, nick, function(err, user){
+        logger.info(nick + " adding " + improvedData.title +
+          " to their collection");
         Song.register(db, user.id, improvedData, function(err){
-          if (err) console.log(err);
+          if (err) logger.error(err.message);
         });
       });
     });
 
-    var fileName = fields.md5 + ".mp3";
+    var fileName = uid + ".mp3";
     var filePath = files.songFile.path;
     var uploadPath = nick + '/' + fileName;
 
     // Save to S3
     storage.save(filePath, uploadPath, function (err) {
-      if (err) {
-        logger.error("S3 " + err.message);
-      } else {
-        logger.info("Saved " + uploadPath + " to S3");
-      }
       // clean up temporary files
       fs.unlink(filePath);
-    })
+    });
 
     res.render("upload_complete", viewData({ fileName: fileName }));
   });
@@ -199,10 +200,7 @@ app.post('/user/:user/sync', function (req, res) {
 
   req.addListener('end', function(){
     User.get(db, nick, function(err, user) {
-      var strData = d.toString();
-      logger.debug(strData);
-      var data = JSON.parse(strData);
-
+      var data = JSON.parse(d.toString());
       var md5s = _.pluck(data, "md5");
 
       db.lookup(user.id, 'user_id', 'song', 'md5', function(err, stored_md5s){
@@ -217,7 +215,6 @@ app.post('/user/:user/sync', function (req, res) {
         var toDownload = stripSynced(stored_md5s);
         var result = {upload: toUpload, download: toDownload};
 
-        logger.debug(result);
         res.send(result);
       });
     });
