@@ -1,19 +1,17 @@
 
 var express = require('express')
   , _ = require('underscore')._
-  , uuid = require('node-uuid')
   , connect = require('connect')
   , logger = require('./lib/logger')
-  , Database = require('./lib/db')
+  , persistence = require('./lib/db')
   , Song = require('./lib/song')
   , User = require('./lib/user')
-  , storage = require('./lib/storage')
-  , form = require('connect-form')
   , path = require('path')
   , sutil = require('./lib/sutil')
-  , fs = require('fs')
+  , form = require('connect-form')
   , util = require('util')
   , signup = require('./signup')
+  , api = require('./lib/api')
   ;
 
 
@@ -23,9 +21,7 @@ GLOBALS.songData = [];
 
 // Create the express server
 var app = express.createServer();
-var cs = Database.buildConnectionString(
-  "localhost", 5432, "postgres", "postgres", "cloudvibe");
-var db = Database.createClient(cs);
+var db = persistence.cloudvibeDb();
 
 // Configuration {{{
 // Shared configuration
@@ -80,9 +76,13 @@ app.get('/', function (req, res){
 });
 
 //===----------------------------------------------------------------------===//
-// Setup signup routes
+// Routes
 //===----------------------------------------------------------------------===//
-signup.routes(app, db);
+signup.routes(app, db, function after(req, res, user){
+  res.render('user', viewData({ user: user }));
+});
+
+api.routes(app, db);
 
 // User controller {{{
 
@@ -114,116 +114,6 @@ app.get('/user/:nick', function (req, res) {
 });
 
 
-//===----------------------------------------------------------------------===//
-// [PUT] Put song controller
-//   /user/bill
-//===----------------------------------------------------------------------===//
-app.put('/user/:user', function (req, res) {
-  var urlUser = req.params.user;
-  User.exists(db, urlUser, function(err, userExists){
-    if (!userExists) return noUserResult(res);
-
-    var file = '/tmp/' + user + '-test';
-    var ws = fs.createWriteStream(file);
-
-    req.addListener('data', function (d) {
-      ws.write(d);
-    });
-
-    req.addListener('end', function () {
-      ws.end();
-      res.writeHead(201);
-      res.end();
-    });
-
-  });
-});
-
-//===----------------------------------------------------------------------===//
-// [POST] Song upload controller
-//   /user/bill/upload
-//===----------------------------------------------------------------------===//
-app.post('/user/:user/upload', function (req, res) {
-  var nick = req.params.user;
-
-  // Read in file data
-  req.form.complete(function(err, fields, files) {
-    // TODO: throw error and use an error handler
-    if (err) {
-      logger.error("Error parsing form multipart song data: " + err.message)
-      res.writeHead(500);
-      res.write("Error parsing song data");
-      res.end();
-      return;
-    }
-
-    var uid = uuid();
-    fields.uid = uid;
-
-    // Improve data and register song in database
-    Song.improveData(fields, function(err, improvedData){
-      User.get(db, nick, function(err, user){
-        logger.info(nick + " adding '" + improvedData.filename +
-          "' to their collection");
-        Song.register(db, user.id, improvedData, function(err){
-          if (err) logger.error(err.message);
-        });
-      });
-    });
-
-    var fileName = uid + ".mp3";
-    var filePath = files.songFile.path;
-    var uploadPath = nick + '/' + fileName;
-
-    // Save to S3
-    storage.save(filePath, uploadPath, function (err) {
-      // clean up temporary files
-      fs.unlink(filePath);
-    });
-
-    res.render("upload_complete", viewData({ fileName: fileName }));
-  });
-});
-
-
-//===----------------------------------------------------------------------===//
-// [POST] Sync web method
-//   /user/bill/sync
-//===----------------------------------------------------------------------===//
-app.post('/user/:user/sync', function (req, res) {
-  var nick = req.params.user;
-
-  var d = "";
-  req.addListener('data', function (chunk){
-    d += chunk;
-  });
-
-  req.addListener('end', function(){
-    User.get(db, nick, function(err, user) {
-      var data = JSON.parse(d.toString());
-      var md5s = _.pluck(data, "md5");
-
-      db.lookup(user.id, 'user_id', 'song', 'md5', function(err, stored_md5s){
-        stored_md5s = _.pluck(stored_md5s, "md5");
-        var synced = _.intersect(md5s, stored_md5s);
-
-        function stripSynced(data) {
-          return _.filter(data, function(v){ return !_.include(synced, v); });
-        }
-
-        var toUpload = stripSynced(md5s);
-        var toDownload = stripSynced(stored_md5s);
-        var result = {upload: toUpload, download: toDownload};
-
-        logger.info(nick + " syncing. " + toDownload.length + " to download, " +
-          toUpload.length + " to upload");
-
-        res.send(result);
-      });
-    });
-  })
-
-});
 
 // User controller }}}
 
