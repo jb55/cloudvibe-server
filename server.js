@@ -11,6 +11,7 @@ var express = require('express')
   , form = require('connect-form')
   , util = require('util')
   , signup = require('./signup')
+  , login = require('./login')
   , api = require('./lib/api')
   ;
 
@@ -79,10 +80,16 @@ app.get('/', function (req, res){
 // Routes
 //===----------------------------------------------------------------------===//
 signup.routes(app, db, function after(req, res, user){
-  res.render('user', viewData({ user: user }));
+  res.redirect('/user/' + user);
+});
+
+login.routes(app, db, function after(req, res, user){
+  res.redirect('/user/' + user);
 });
 
 api.routes(app, db);
+
+
 
 // User controller {{{
 

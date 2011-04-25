@@ -7,8 +7,6 @@ var vows     = require('vows')
   , logger   = require('../lib/logger')
   , persist  = require('../lib/db');
 
-logger.level = "error";
-
 var db = persist.cloudvibeDb();
 
 
@@ -47,7 +45,7 @@ vows.describe('user').addBatch({
 //===----------------------------------------------------------------------===//
 // signup tests
 //===----------------------------------------------------------------------===//
-vows.describe('signup').addBatch({
+vows.describe('auth').addBatch({
   'An invalid signup model after validation': {
     topic: function() {
       su = signup.model('\'hur', 'jb+@jb55.com', '', 'a');
@@ -85,12 +83,24 @@ vows.describe('signup').addBatch({
     }
   },
   'A valid signup model': {
-    topic: signup.model('bill', 'bill.casarin@amazon.ca', 'password', 'password'),
+    topic: signup.model('jb552', 'bill.casarin@amazon.ca', 'password', 'password'),
     'after validation': {
       topic: function(su) {
         signup.validate(su);
+        su.isValid = signup.validate(su);
         return su;
       },
+      'should return true': function(topic) {
+        assert.equal(topic.isValid, true);
+      },
+      'with a valid username': {
+        'should not contain errors': function(topic){
+          assert.isUndefined(topic.errors.name);
+        },
+        'should pass User.isValidName': function(topic){
+          assert.equal(User.isValidName(topic.name), true);
+        },
+      }
     }
   }
 }).export(module);

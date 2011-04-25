@@ -28,6 +28,14 @@ h1 {
   text-shadow: 1px 1px 1px #222;
 }
 
+a {
+  color: #a4e6f2;
+}
+
+img {
+  border: 0;
+}
+
 #home {
   width: 900px;
   height: 800px;

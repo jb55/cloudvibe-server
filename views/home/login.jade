@@ -1,0 +1,22 @@
+!!! 5
+html(lang="en")
+  head
+    link(rel="stylesheet", href="/css/main.css")
+    link(rel="stylesheet", href="/css/landing.css")
+    title Cloudvibe | Login
+    script(src="https://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js")
+  body
+    #home
+      img(src="/img/cloudvibe.png")
+      form(method="post", id="signup-form")
+        p
+          p Enter your username
+          input(type="text", name="user[name]", value=user.name)
+          - if (user.errors.name)
+            p.error= user.errors.name
+          p Type your password
+          input(type="password", name="user[password]", value=user.password)
+          - if (user.errors.password)
+            p.error= user.errors.password
+        p
+          input(type="submit", name="submit", value="Submit")

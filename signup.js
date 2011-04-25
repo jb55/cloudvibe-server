@@ -86,7 +86,7 @@ signup.routes = function(app, db, next) {
       return signup.render(res, user);
 
     User.register(db, user.name, user.password, function(err, exists){
-      if (exists === false) {
+      if (exists === true) {
         // user already exists
         user.errors.name = "User already exists";
         return signup.render(res, user);
