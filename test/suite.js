@@ -48,39 +48,49 @@ vows.describe('user').addBatch({
 // signup tests
 //===----------------------------------------------------------------------===//
 vows.describe('signup').addBatch({
-  'A signup model': {
-    topic: signup.model('\'hur', 'jb+@jb55.com', '', 'a'),
+  'An invalid signup model after validation': {
+    topic: function() {
+      su = signup.model('\'hur', 'jb+@jb55.com', '', 'a');
+      su.isValid = signup.validate(su);
+      return su;
+    },
+    'returns false': function(topic) {
+      assert.equal(topic.isValid, false);
+    },
+    'with a email that has a plus in it': {
+      'should pass sutil.validEmail': function(topic) {
+        assert.equal(sutil.validEmail(topic.email), true);
+      },
+      'should not contain errors': function(topic){
+        assert.isUndefined(topic.errors.email);
+      },
+    },
+    'with an invalid username': {
+      'should not pass User.isValidName': function(topic) {
+        assert.equal(User.isValidName(topic.name), false);
+      },
+      'should contain errors': function(topic){
+        assert.ok(topic.errors.name);
+      }
+    },
+    'with mismatched passwords': {
+      'should contain errors': function(topic){
+        assert.ok(topic.errors.password);
+      }
+    },
+    'with an empty password': {
+      'should contain errors': function(topic){
+        assert.ok(topic.errors.password);
+      }
+    }
+  },
+  'A valid signup model': {
+    topic: signup.model('bill', 'bill.casarin@amazon.ca', 'password', 'password'),
     'after validation': {
       topic: function(su) {
         signup.validate(su);
         return su;
       },
-      'with a email that has a plus in it': {
-        'should pass sutil.validEmail': function(topic) {
-          assert.equal(sutil.validEmail(topic.email), true);
-        },
-        'should not contain errors': function(topic){
-          assert.isUndefined(topic.errors.email);
-        },
-      },
-      'with an invalid username': {
-        'should not pass User.isValidName': function(topic) {
-          assert.equal(User.isValidName(topic.name), false);
-        },
-        'should contain errors': function(topic){
-          assert.ok(topic.errors.name);
-        }
-      },
-      'with mismatched passwords': {
-        'should contain errors': function(topic){
-          assert.ok(topic.errors.password);
-        }
-      },
-      'with an empty password': {
-        'should contain errors': function(topic){
-          assert.ok(topic.errors.password);
-        }
-      }
     }
   }
 }).export(module);
