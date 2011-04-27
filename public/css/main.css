@@ -42,7 +42,14 @@ fieldset {
 }
 
 #main {
+  border-top: solid 1px #2363af;
   display: hidden;
+}
+
+#library {
+  float: left;
+  display: block;
+  width: 800px;
 }
 
 .column {
@@ -59,9 +66,10 @@ fieldset {
 }
 
 #header {
-  padding: 20px 0px 0px 20px;
-  height: 70px;
-  background: #fff url('/img/header_back.png') repeat-x top left;
+  padding: 17px 0px 0px 17px;
+  height: 67px;
+  background: #fff url('/img/header_back_core.jpg') repeat-x top left;
+  border-bottom: solid 1px #5589d8;
 }
 
 #container {
@@ -97,5 +105,10 @@ input[type="submit"] {
 
 .error {
   color: #e50404;
+}
 
+.datatable {
+  display: block;
+  float: left;
+  width: 100%;
 }

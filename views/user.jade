@@ -1,18 +1,32 @@
-h2 Music Library
+#library
+  h2 Music Library
 
-table.flexme
-  tr
-    th Artist
-    th Title
-    th File
-  - each song in songs
-    tr
-      td= song.artist || "?"
-      td= song.title || "?"
-      td= song.filename
+  table.datatable
+    thead
+      th Artist
+      th Title
+      th File
+    - each song in songs
+      tr
+        td= song.artist || "?"
+        td= song.title || "?"
+        td= song.filename
 
-script
-  $(function() {
-    $(".flexme").flexigrid();
-  });
+  script
+    $(function(){
+      var dt = $(".datatable").dataTable({
+      });
+
+      var url = "!{ '/user/' + user.nick + '/update' }";
+
+      $('td', dt.fnGetNodes()).editable(url, {
+        'callback': function(val, y){
+          var pos = dt.fnGetPosition(this);
+          dt.fnUpdate(val, pos[0], pos[1]);
+        },
+        'submitdata': function(value, settings){
+
+        }
+      });
+    });
 
