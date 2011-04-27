@@ -7,12 +7,18 @@
       th Title
       th File
     - each song in songs
-      tr
+      tr(id=song.uid)
         td= song.artist || "?"
         td= song.title || "?"
         td= song.filename
 
   script
+    var cols = [
+      "artist"
+    , "title"
+    , "filename"
+    ];
+
     $(function(){
       var dt = $(".datatable").dataTable({
       });
@@ -25,7 +31,11 @@
           dt.fnUpdate(val, pos[0], pos[1]);
         },
         'submitdata': function(value, settings){
-
+          return {
+            'id': this.parentNode.getAttribute('id')
+          , 'field': cols[dt.fnGetPosition(this)[2]]
+          , 'oldvalue': value
+          };
         }
       });
     });
