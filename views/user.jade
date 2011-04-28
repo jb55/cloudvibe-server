@@ -20,7 +20,13 @@
     ];
 
     $(function(){
+
       var dt = $(".datatable").dataTable({
+      });
+
+      $('.artist').live('click', function(){
+        var item = $(this);
+        dt.fnFilter(item.text());
       });
 
       var url = "!{ '/user/' + user.nick + '/update' }";
